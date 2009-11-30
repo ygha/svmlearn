@@ -1,8 +1,8 @@
 package svmlearn;
 
 /**
- * Class representing a feature
- * Taken from liblinear
+ * Class representing a feature;
+ * taken from liblinear
  * @author miafranc
  *
  */
