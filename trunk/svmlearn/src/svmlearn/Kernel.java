@@ -8,12 +8,12 @@ package svmlearn;
  */
 public class Kernel {
 	/**
-	 * Return the squared Euclidean distance
+	 * Calculates the squared Euclidean distance of two vectors
 	 * @param x the first point (vector)
-	 * @param y the second point (vector)
-	 * @return
+	 * @param z the second point (vector)
+	 * @return The squared Euclidean distance
 	 */
-	public static double euclidean_dist2(FeatureNode [] x,FeatureNode [] z) {
+	public static double euclidean_dist2(FeatureNode [] x, FeatureNode [] z) {
 		double sum=0;
 		int i,j;
 		for (i=0,j=0;x!=null && z!=null && i<x.length && j<z.length;) {
@@ -40,10 +40,10 @@ public class Kernel {
 		return sum;
 	}
 	/**
-	 * Returns the dot product of two vectors
+	 * Calculates the dot product of two vectors
 	 * @param x the first vector
-	 * @param y the second vector
-	 * @return
+	 * @param z the second vector
+	 * @return The dot product of the vectors
 	 */
 	public static double dot_product(FeatureNode [] x, FeatureNode [] z) {
 		double sum=0;
