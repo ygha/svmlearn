@@ -8,16 +8,29 @@ package svmlearn;
 public class SVM {
 	/** Trained/loaded model */
 	public Model model;
+	/** Regularization parameter */
 	public double C = 1;
+	/** Tolerance */
 	public double tol = 0.001;
-	public int maxpass = 100;
+	/** Number of times to iterate over the alpha's without changing */
+	public int maxpass = 10;
 
 	public SVM() {
 	}
+	/**
+	 * Training the SVM.
+	 * @param train The training set.
+	 */
 	public void svmTrain(Problem train) {
 		KernelParams p = new KernelParams();
 		svmTrain(train, p, 0);
 	}
+	/**
+	 * Training the SVM with specified kernel parameters and algorithm. 
+	 * @param train The training set. 
+	 * @param p The kernel parameters.
+	 * @param alg The chosen algorithm.
+	 */
 	public void svmTrain(Problem train, KernelParams p, int alg) {
 		switch (alg) {
 		case 0:
@@ -28,6 +41,11 @@ public class SVM {
 			break;
 		}
 	}
+	/**
+	 * Probabilistic (random, simple) SMO
+	 * @param train The training set.
+	 * @param p The kernel parameters.
+	 */
 	public void simpleSMO(Problem train, KernelParams p) {
 		int pass = 0;
 		int alpha_change = 0;
@@ -38,11 +56,14 @@ public class SVM {
 		double L, H;
 		double eta;
 		//Initialize:
-		Model model = new Model();
+		model = new Model();
 		model.alpha = new double [train.l];
 		model.b = 0;
 		model.params = p;
 		model.x = train.x;
+		model.y = train.y;
+		model.l = train.l;
+		model.n = train.n;
 		//Main iteration:
 		while (pass < maxpass) {
 			alpha_change = 0;
@@ -94,6 +115,11 @@ public class SVM {
 				pass = 0;
 		}
 	}
+	/**
+	 * The famous SMO algorithm.
+	 * @param train The training set.
+	 * @param p The kernel parameters.
+	 */
 	public void SMO(Problem train, KernelParams p) {
 		
 	}
