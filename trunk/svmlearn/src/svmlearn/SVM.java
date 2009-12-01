@@ -7,13 +7,21 @@ package svmlearn;
  */
 public class SVM {
 	/** Trained/loaded model */
-	public Model model;
+	private Model model;
 	/** Regularization parameter */
-	public double C = 1;
+	private double C = 1;
 	/** Tolerance */
-	public double tol = 0.001;
+	private double tol = 10e-3;
+	/** Tolerance */
+	private double tol2 = 10e-5;
 	/** Number of times to iterate over the alpha's without changing */
-	public int maxpass = 10;
+	private int maxpass = 10;
+	
+	/*some global variables of the SMO algorithm*/
+	private double Ei, Ej;
+	private double ai_old, aj_old;
+	private double L, H;
+	/* ---------------------------------------- */
 
 	public SVM() {
 	}
@@ -46,14 +54,10 @@ public class SVM {
 	 * @param train The training set.
 	 * @param p The kernel parameters.
 	 */
-	public void simpleSMO(Problem train, KernelParams p) {
+	private void simpleSMO(Problem train, KernelParams p) {
 		int pass = 0;
 		int alpha_change = 0;
 		int i, j;
-		double b1, b2;
-		double Ei, Ej;
-		double ai_old, aj_old;
-		double L, H;
 		double eta;
 		//Initialize:
 		model = new Model();
@@ -66,23 +70,21 @@ public class SVM {
 		model.n = train.n;
 		//Main iteration:
 		while (pass < maxpass) {
+			if (alpha_change > 0)
+				System.out.print(".");
+			else
+				System.out.print("*");
 			alpha_change = 0;
 			for (i=0; i<train.l; i++) {
 				Ei = svmTestOne(train.x[i]) - train.y[i];
-				if ((train.y[i]*Ei<-tol && model.alpha[i]<C) || 
-					(train.y[i]*Ei>tol && model.alpha[i]>0)) {
+				if ((train.y[i]*Ei<-tol && model.alpha[i]<C) || (train.y[i]*Ei>tol && model.alpha[i]>0)) {
 					j = (int)Math.floor(Math.random()*(train.l-1));
 					j = (j<i)?j:(j+1);
 					Ej = svmTestOne(train.x[j]) - train.y[j];
 					ai_old = model.alpha[i];
 					aj_old = model.alpha[j];
-					if (train.y[i] != train.y[j]) {
-						L = Math.max(0, -ai_old+aj_old);
-						H = Math.min(C, -ai_old+aj_old+C);
-					} else {
-						L = Math.max(0, ai_old+aj_old-C);
-						H = Math.min(C, ai_old+aj_old);
-					}
+					L = computeL(train.y[i], train.y[j]);
+					H = computeH(train.y[i], train.y[j]);
 					if (L == H) //next i
 						continue;
 					eta = 2*kernel(train.x[i],train.x[j])-kernel(train.x[i],train.x[i])-kernel(train.x[j],train.x[j]);
@@ -93,19 +95,12 @@ public class SVM {
 						model.alpha[j] = H;
 					else if (model.alpha[j] < L)
 						model.alpha[j] = L;
-					if (Math.abs(model.alpha[j]-aj_old) < 10e-5) //next i
+					if (Math.abs(model.alpha[j]-aj_old) < tol2) //next i
 						continue;
 					model.alpha[i] = ai_old + train.y[i]*train.y[j]*(aj_old-model.alpha[j]);
-					b1 = model.b - Ei - train.y[i]*(model.alpha[i]-ai_old)*kernel(train.x[i], train.x[i]) -
-							train.y[j]*(model.alpha[j]-aj_old)*kernel(train.x[i], train.x[j]);
-					b2 = model.b - Ej - train.y[i]*(model.alpha[i]-ai_old)*kernel(train.x[i], train.x[j]) -
-							train.y[j]*(model.alpha[j]-aj_old)*kernel(train.x[j], train.x[j]);
-					if (0 < model.alpha[i] && model.alpha[i]<C)
-						model.b = b1;
-					else if (0 < model.alpha[j] && model.alpha[j] < C)
-						model.b = b2;
-					else
-						model.b = (b1+b2)/2;
+					computeBias(model.alpha[i], model.alpha[j], train.y[i], train.y[j], 
+							kernel(train.x[i], train.x[i]), kernel(train.x[j], train.x[j]), 
+							kernel(train.x[i], train.x[j]));
 					alpha_change++;
 				}
 			}
@@ -114,13 +109,64 @@ public class SVM {
 			else
 				pass = 0;
 		}
+		System.out.println();
+	}
+	/**
+	 * Computes L.
+	 * @param yi
+	 * @param yj
+	 * @return Returns L.
+	 */
+	private double computeL(int yi, int yj) {
+		double L = 0;
+		if (yi != yj) {
+			L = Math.max(0, -ai_old+aj_old);
+		} else {
+			L = Math.max(0, ai_old+aj_old-C);
+		}
+		return L;
+	}
+	/**
+	 * Computes H.
+	 * @param yi
+	 * @param yj
+	 * @return Returns H.
+	 */
+	private double computeH(int yi, int yj) {
+		double H = 0;
+		if (yi != yj) {
+			H = Math.min(C, -ai_old+aj_old+C);
+		} else {
+			H = Math.min(C, ai_old+aj_old);
+		}
+		return H;
+	}
+	/**
+	 * Computes the bias and stores in model.b.
+	 * @param ai
+	 * @param aj
+	 * @param yi
+	 * @param yj
+	 * @param kii
+	 * @param kjj
+	 * @param kij
+	 */
+	private void computeBias(double ai, double aj, int yi, int yj, double kii, double kjj, double kij) {
+		double b1 = model.b - Ei - yi*(ai-ai_old)*kii - yj*(aj-aj_old)*kij;
+		double b2 = model.b - Ej - yi*(ai-ai_old)*kij - yj*(aj-aj_old)*kjj;
+		if (0 < ai && ai<C)
+			model.b = b1;
+		else if (0 < aj && aj < C)
+			model.b = b2;
+		else
+			model.b = (b1+b2)/2;		
 	}
 	/**
 	 * The famous SMO algorithm.
 	 * @param train The training set.
 	 * @param p The kernel parameters.
 	 */
-	public void SMO(Problem train, KernelParams p) {
+	private void SMO(Problem train, KernelParams p) {
 		
 	}
 	/**
@@ -156,7 +202,7 @@ public class SVM {
 	 * @param z
 	 * @return Kernel value between x and z.
 	 */
-	public double kernel(FeatureNode [] x, FeatureNode [] z) {
+	private double kernel(FeatureNode [] x, FeatureNode [] z) {
 		double ret = 0;
 		switch (model.params.kernel) {
 		case 0: //user defined
@@ -175,5 +221,41 @@ public class SVM {
 			break;
 		}
 		return ret;
+	}
+	public Model getModel() {
+		return model;
+	}
+	public void setModel(Model m) {
+		model = m;
+	}
+	public double getC() {
+		return C;
+	}
+	public void setC(double C) {
+		this.C = C;
+	}
+	public double getTolerance() {
+		return tol;
+	}
+	public void setTolerance(double tol) {
+		this.tol = tol; 
+	}
+	public double getTolerance2() {
+		return tol2;
+	}
+	public void setTolerance2(double tol) {
+		this.tol2 = tol;
+	}
+	public int getMaxPass() {
+		return maxpass;
+	}
+	public void setMaxPass(int p) { 
+		maxpass = p;
+	}
+	public void setParameters(double C, double tol, double tol2, int maxpass) {
+		this.C = C;
+		this.tol = tol;
+		this.tol2 = tol2;
+		this.maxpass = maxpass;
 	}
 }
