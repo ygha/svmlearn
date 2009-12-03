@@ -15,7 +15,7 @@ public class SVM {
 	/** Tolerance */
 	private double tol2 = 10e-5;
 	/** Number of times to iterate over the alpha's without changing */
-	private int maxpass = 10;
+	private int maxpass = 5;
 	
 	/*some global variables of the SMO algorithm*/
 	private double Ei, Ej;
@@ -37,7 +37,7 @@ public class SVM {
 	 * Training the SVM with specified kernel parameters and algorithm. 
 	 * @param train The training set. 
 	 * @param p The kernel parameters.
-	 * @param alg The chosen algorithm.
+	 * @param alg The chosen algorithm: 0 - simpleSMO, 1 - SMO
 	 */
 	public void svmTrain(Problem train, KernelParams p, int alg) {
 		switch (alg) {
