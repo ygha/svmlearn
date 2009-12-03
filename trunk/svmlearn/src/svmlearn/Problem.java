@@ -38,6 +38,9 @@ public class Problem {
 			while ((row = r.readLine()) != null) {
 				String [] elems = row.split(" ");
 				//Category:
+				if (elems[0].charAt(0) == '+') {//to allow for example +1 as class label
+					elems[0] = elems[0].substring(1);
+				}
 				Integer cat = Integer.parseInt(elems[0]);
 				catmap.addCategory(cat);
 				if (catmap.size() > 2) {
