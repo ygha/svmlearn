@@ -25,5 +25,6 @@ public class Main {
 		System.out.println("Accuracy=" + e.Accuracy());
 		
 		System.out.println("Done.");
+		System.out.println("END");
 	}
 }
