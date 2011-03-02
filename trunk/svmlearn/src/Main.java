@@ -8,14 +8,14 @@ public class Main {
 		Problem test = new Problem();
 //		train.loadProblem("G:\\!data\\lshtc\\proba2\\train.txt");
 //		test.loadProblem("G:\\!data\\lshtc\\proba2\\test.txt");
-		train.loadBinaryProblem("G:\\!data\\lshtc\\reuters\\train.txt");
-		test.loadBinaryProblem("G:\\!data\\lshtc\\reuters\\test.txt");
+		train.loadBinaryProblem("c:\\zalan\\eclipse\\!\\a1a.train");
+		test.loadBinaryProblem("c:\\zalan\\eclipse\\!\\a1a.test");
 
 		System.out.println("Loaded.");
 		System.out.println("Training...");
-//		KernelParams kp = new KernelParams(2,1,1,1);
-//		s.svmTrain(train, kp, 0);
-		s.svmTrain(train);
+		KernelParams kp = new KernelParams(1,1,1,1);
+		s.svmTrain(train, kp, 1);
+//		s.svmTrain(train);
 		System.out.println("Testing...");
 		int [] pred = s.svmTest(test);
 		for (int i=0; i<pred.length; i++)
