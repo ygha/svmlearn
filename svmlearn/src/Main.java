@@ -8,7 +8,7 @@ public class Main {
 		Problem test = new Problem();
 //		train.loadProblem("G:\\!data\\lshtc\\proba2\\train.txt");
 //		test.loadProblem("G:\\!data\\lshtc\\proba2\\test.txt");
-		train.loadBinaryProblem("c:\\zalan\\eclipse\\!\\a1a.train");
+		train.loadBinaryProblem("c:\\zalan\\eclipse\\!\\a3a.train");
 		test.loadBinaryProblem("c:\\zalan\\eclipse\\!\\a1a.test");
 
 		System.out.println("Loaded.");
